@@ -1,11 +1,10 @@
 # Trabalho de Software Básico
 
 ## Alunos:
-GUSTAVO RODRIGUES GUALBERTO;
-HENRIQUE CARVALHO WOLSKI;
-RYAN REIS FONTENELE;
+GUSTAVO RODRIGUES GUALBERTO; \
+HENRIQUE CARVALHO WOLSKI;\
+PAULO HENRIQUE BORGES MARTINS;\
+RYAN REIS FONTENELE;\
 VICTOR HENRIQUE DA SILVA COSTA.
 
-## Semestre 2024.2
-## Prof. Marcelo L.
-## Universidade de Brasília.
+### Semestre 2024.2 - Prof. Marcelo L. - Universidade de Brasília.
