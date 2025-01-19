@@ -50,11 +50,17 @@ struct ConstantPoolEntry {
     } info;
 };
 
+// struct attribute_info {
+//     uint16_t attribute_name_index;
+//     uint64_t attribute_length = 0;
+//     //uint8_t info [attribute_length];
+//     std::vector<uint8_t> info; // Use um vetor dinâmico
+// };
+
 struct attribute_info {
     uint16_t attribute_name_index;
-    uint64_t attribute_length = 0;
-    //uint8_t info [attribute_length];
-    std::vector<uint8_t> info; // Use um vetor dinâmico
+    uint32_t attribute_length;  // Mudado para uint32_t para corresponder ao formato do arquivo .class
+    std::vector<uint8_t> info;
 };
 
 struct field_info_entry {
@@ -64,6 +70,15 @@ struct field_info_entry {
     uint16_t attributes_count = 0;
     //attribute_info attributes[attributes_count];
     std::vector<attribute_info> attributes; // Use um vetor dinâmico
+};
+
+//A estrutura method_info descreve um método da classe
+struct method_info {
+    uint16_t access_flags;
+    uint16_t name_index;
+    uint16_t descriptor_index;
+    uint16_t attributes_count;
+    std::vector<attribute_info> attributes;
 };
 
 // Função para ler o pool de constantes
@@ -311,6 +326,285 @@ void displayfield_info(const std::vector<field_info_entry> &field_info) {
 
 }
 
+
+// atualizado :
+
+
+
+void readAttribute(std::ifstream &file, attribute_info &attribute) {
+    readData(file, attribute.attribute_name_index);
+    attribute.attribute_name_index = ((attribute.attribute_name_index >> 8) & 0xFF) | 
+                                   ((attribute.attribute_name_index << 8) & 0xFF00);
+    
+    uint32_t length;
+    readData(file, length);
+    // Correção na conversão do comprimento do atributo
+    attribute.attribute_length = ((length >> 24) & 0xFF) | 
+                               ((length >> 8) & 0xFF00) |
+                               ((length << 8) & 0xFF0000) | 
+                               ((length << 24) & 0xFF000000);
+    
+    // Redimensionar o vetor info antes de ler
+    attribute.info.resize(attribute.attribute_length);
+    if (attribute.attribute_length > 0) {
+        file.read(reinterpret_cast<char*>(attribute.info.data()), attribute.attribute_length);
+    }
+}
+
+// Função para ler os campos da classe (usando field_info_entry)
+void readFields(std::ifstream &file, std::vector<field_info_entry> &fields) {
+    uint16_t fields_count;
+    readData(file, fields_count);
+    fields_count = ((fields_count >> 8) & 0xFF) | ((fields_count << 8) & 0xFF00);
+    fields.resize(fields_count);
+
+    for (uint16_t i = 0; i < fields_count; ++i) {
+        field_info_entry &field = fields[i];
+        readData(file, field.access_flags);
+        readData(file, field.name_index);
+        readData(file, field.descriptor_index);
+        readData(file, field.attributes_count);
+
+        field.access_flags = ((field.access_flags >> 8) & 0xFF) | ((field.access_flags << 8) & 0xFF00);
+        field.name_index = ((field.name_index >> 8) & 0xFF) | ((field.name_index << 8) & 0xFF00);
+        field.descriptor_index = ((field.descriptor_index >> 8) & 0xFF) | ((field.descriptor_index << 8) & 0xFF00);
+        field.attributes_count = ((field.attributes_count >> 8) & 0xFF) | ((field.attributes_count << 8) & 0xFF00);
+
+        field.attributes.resize(field.attributes_count);
+        for (uint16_t j = 0; j < field.attributes_count; ++j) {
+            readAttribute(file, field.attributes[j]);
+        }
+    }
+}
+
+void displayFields(const std::vector<field_info_entry> &fields,
+                   const std::vector<ConstantPoolEntry> &constantPool)
+{
+    for (const auto &field : fields) {
+        if (field.name_index == 0 || field.name_index >= constantPool.size() ||
+            field.descriptor_index == 0 || field.descriptor_index >= constantPool.size()) {
+            std::cerr << "Erro: índice inválido em `constantPool` para field." << std::endl;
+            continue;
+        }
+
+        const ConstantPoolEntry &nameEntry       = constantPool[field.name_index];
+        const ConstantPoolEntry &descriptorEntry = constantPool[field.descriptor_index];
+
+        if (nameEntry.tag != 1 || descriptorEntry.tag != 1) {
+            std::cerr << "Erro: field name ou descriptor não são CONSTANT_Utf8." << std::endl;
+            continue;
+        }
+
+        std::string fieldName = pool_strings[nameEntry.info.nameIndex];
+        std::string fieldDescriptor = pool_strings[descriptorEntry.info.nameIndex];
+
+        std::cout << "Field: " << fieldName 
+                  << " | Descriptor: " << fieldDescriptor << std::endl;
+
+        // Se quiser imprimir atributos do campo:
+        for (const auto &attr : field.attributes) {
+            if (attr.attribute_name_index >= pool_strings.size()) {
+                std::cerr << "Erro: índice de atributo inválido." << std::endl;
+                continue;
+            }
+            std::string attributeName = pool_strings[attr.attribute_name_index];
+            std::cout << "  Field Attribute: " << attributeName 
+                      << " (length=" << attr.attribute_length << ")\n";
+        }
+    }
+}
+
+
+void readMethods(std::ifstream &file, std::vector<method_info> &methods) {
+    uint16_t methods_count;
+    readData(file, methods_count);
+    methods_count = ((methods_count >> 8) & 0xFF) | ((methods_count << 8) & 0xFF00);
+    methods.resize(methods_count);
+
+    for (uint16_t i = 0; i < methods_count; ++i) {
+        method_info &method = methods[i];
+        readData(file, method.access_flags);
+        readData(file, method.name_index);
+        readData(file, method.descriptor_index);
+        readData(file, method.attributes_count);
+
+        method.access_flags = ((method.access_flags >> 8) & 0xFF) | ((method.access_flags << 8) & 0xFF00);
+        method.name_index = ((method.name_index >> 8) & 0xFF) | ((method.name_index << 8) & 0xFF00);
+        method.descriptor_index = ((method.descriptor_index >> 8) & 0xFF) | ((method.descriptor_index << 8) & 0xFF00);
+        method.attributes_count = ((method.attributes_count >> 8) & 0xFF) | ((method.attributes_count << 8) & 0xFF00);
+
+        method.attributes.resize(method.attributes_count);
+        for (uint16_t j = 0; j < method.attributes_count; ++j) {
+            readAttribute(file, method.attributes[j]);
+        }
+    }
+}
+
+void displayMethods(const std::vector<method_info> &methods,
+                    const std::vector<ConstantPoolEntry> &constantPool)
+{
+    for (const auto &method : methods) {
+        // 1) Verifica se os índices estão dentro do range do constantPool
+        if (method.name_index == 0 || method.name_index >= constantPool.size() ||
+            method.descriptor_index == 0 || method.descriptor_index >= constantPool.size()) {
+            std::cerr << "Erro: índice inválido em `constantPool` para método." << std::endl;
+            continue;
+        }
+
+        // 2) Acessa as entradas correspondentes do constantPool
+        const ConstantPoolEntry &nameEntry       = constantPool[method.name_index];
+        const ConstantPoolEntry &descriptorEntry = constantPool[method.descriptor_index];
+
+        // 3) Verifica se são, de fato, CONSTANT_Utf8
+        if (nameEntry.tag != 1 || descriptorEntry.tag != 1) {
+            std::cerr << "Erro: name_index ou descriptor_index não apontam para CONSTANT_Utf8." << std::endl;
+            continue;
+        }
+
+        // 4) Agora sim pegamos o índice interno que aponta para o `pool_strings`.
+        //    Esse índice fica em nameEntry.info.nameIndex.
+        //    Então obtemos as strings de fato:
+        std::string methodName      = pool_strings[nameEntry.info.nameIndex];
+        std::string methodDescriptor = pool_strings[descriptorEntry.info.nameIndex];
+
+        std::cout << "Method: " << methodName
+                  << " Descriptor: " << methodDescriptor << std::endl;
+
+        // Exibe atributos do método
+        for (const auto &attribute : method.attributes) {
+            // Verifica índice do atributo no constantPool
+            if (attribute.attribute_name_index == 0 || 
+                attribute.attribute_name_index >= pool_strings.size()) {
+                std::cerr << "Erro: índice inválido em `pool_strings` para atributo." << std::endl;
+                continue;
+            }
+
+            // Nome do atributo
+            std::string attributeName = pool_strings[attribute.attribute_name_index];
+            std::cout << "  Attribute: " << attributeName 
+                      << " Length: " << attribute.attribute_length << std::endl;
+
+            // Exemplo de processamento caso seja "Code"
+            if (attributeName == "Code") {
+                if (attribute.info.size() < 8) {
+                    std::cerr << "Erro: tamanho insuficiente de `info` no atributo 'Code'." << std::endl;
+                    continue;
+                }
+                // Ler max_stack, max_locals, code_length, etc.
+                uint16_t maxStack  = (attribute.info[0] << 8) | attribute.info[1];
+                uint16_t maxLocals = (attribute.info[2] << 8) | attribute.info[3];
+                uint32_t codeLength = (attribute.info[4] << 24) | (attribute.info[5] << 16) |
+                                      (attribute.info[6] << 8)  | attribute.info[7];
+
+                std::cout << "    Max Stack: "   << maxStack   << std::endl;
+                std::cout << "    Max Locals: "  << maxLocals  << std::endl;
+                std::cout << "    Code Length: " << codeLength << std::endl;
+
+                // Verificar se realmente tem `codeLength` bytes de bytecode
+                if (attribute.info.size() < (8 + codeLength)) {
+                    std::cerr << "Erro: tamanho insuficiente de `info` para o bytecode." << std::endl;
+                    continue;
+                }
+
+                // Exibir o bytecode
+                std::cout << "    Bytecode: ";
+                for (uint32_t i = 0; i < codeLength; ++i) {
+                    std::cout << std::hex << (int)attribute.info[8 + i] << " ";
+                }
+                std::cout << std::dec << std::endl;
+            }
+        }
+    }
+}
+
+
+void interpretAttributes(const attribute_info &attribute, const std::vector<ConstantPoolEntry> &constantPool) {
+    std::string attributeName = pool_strings[attribute.attribute_name_index];
+
+    if (attributeName == "Code") {
+        std::cout << "  Code attribute found." << std::endl;
+        // Decodifique o bytecode aqui
+    } else if (attributeName == "LineNumberTable") {
+        std::cout << "  LineNumberTable attribute found." << std::endl;
+        // Decodifique os dados aqui
+    } else {
+        std::cout << "  Unknown attribute: " << attributeName << std::endl;
+    }
+}
+
+void displayClassAttributes(const std::vector<attribute_info> &attributes, 
+                          const std::vector<ConstantPoolEntry> &constantPool) {
+    std::cout << "\n=== Class Attributes ===\n";
+    for (const auto &attribute : attributes) {
+        // Verificar se o índice é válido
+        if (attribute.attribute_name_index >= constantPool.size()) {
+            std::cerr << "Invalid attribute name index\n";
+            continue;
+        }
+
+        const auto &nameEntry = constantPool[attribute.attribute_name_index];
+        if (nameEntry.tag != 1) {
+            std::cerr << "Invalid attribute entry type\n";
+            continue;
+        }
+
+        if (nameEntry.info.nameIndex >= pool_strings.size()) {
+            std::cerr << "Invalid string pool index\n";
+            continue;
+        }
+
+        std::string attributeName = pool_strings[nameEntry.info.nameIndex];
+        std::cout << "Class Attribute: " << attributeName 
+                  << " Length: " << attribute.attribute_length << "\n";
+
+        if (attributeName == "SourceFile" && attribute.info.size() >= 2) {
+            uint16_t sourceFileIndex = (attribute.info[0] << 8) | attribute.info[1];
+            if (sourceFileIndex < pool_strings.size()) {
+                std::cout << "  Source File: " << pool_strings[sourceFileIndex] << "\n";
+            }
+        }
+    }
+}
+
+
+
+
+
+// Funcao de auxilio para veerificar erro no acesse flag
+
+void handleAccessFlags(std::ifstream &file, uint16_t access_flag) {
+    // Desmembrar as combinações de flags
+    if (access_flag & 0x0001) { // ACC_PUBLIC
+        displayAcessFlag(file, 0x0001);
+    }
+    if (access_flag & 0x0010) { // ACC_FINAL
+        displayAcessFlag(file, 0x0010);
+    }
+    if (access_flag & 0x0020) { // ACC_SUPER
+        displayAcessFlag(file, 0x0020);
+    }
+    if (access_flag & 0x0200) { // ACC_INTERFACE
+        displayAcessFlag(file, 0x0200);
+    }
+    if (access_flag & 0x0400) { // ACC_ABSTRACT
+        displayAcessFlag(file, 0x0400);
+    }
+    if (access_flag & 0x1000) { // ACC_SYNTHETIC
+        displayAcessFlag(file, 0x1000);
+    }
+    if (access_flag & 0x2000) { // ACC_ANNOTATION
+        displayAcessFlag(file, 0x2000);
+    }
+    if (access_flag & 0x4000) { // ACC_ENUM
+        displayAcessFlag(file, 0x4000);
+    }
+}
+
+
+
+
+
+
 // Função principal para ler e exibir um arquivo .class
 int main(int argc, char *argv[]) {
 
@@ -357,7 +651,8 @@ int main(int argc, char *argv[]) {
     uint16_t Acess_Flag;        // Flags de acesso
     readData(file, Acess_Flag);
     Acess_Flag = ((Acess_Flag >> 8) & 0xFF) | ((Acess_Flag << 8) & 0xFF00);
-    displayAcessFlag(file, Acess_Flag);
+    //displayAcessFlag(file, Acess_Flag);
+    handleAccessFlags(file, Acess_Flag);
 
     // Ler e exibir índice que indica o nome da classe ou interface definida por esse arquivo
     uint16_t this_class;        // Índice na pool de constantes
@@ -381,10 +676,24 @@ int main(int argc, char *argv[]) {
 
     // Ler e exibir as variáveis de classe ou variáveis de instância
     std::vector<field_info_entry> field_info;
-    readfieldinfo(file, field_info);
-    displayfield_info(field_info);
+    readFields(file, field_info);
+    displayFields(field_info, constantPool);
 
+     // Ler e exibir os métodos
+     std::vector<method_info> methods;
+     readMethods(file, methods);
+     displayMethods(methods, constantPool);
 
+     // Ler e exibir os atributos da classe
+    uint16_t attributes_count;
+    readData(file, attributes_count);
+    attributes_count = ((attributes_count >> 8) & 0xFF) | ((attributes_count << 8) & 0xFF00);
+
+     std::vector<attribute_info> attributes(attributes_count);
+     for (uint16_t i = 0; i < attributes_count; ++i) {
+         readAttribute(file, attributes[i]);
+     }
+     displayClassAttributes(attributes, constantPool);
 
     return 0;
 }
