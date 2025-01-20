@@ -1,0 +1,7 @@
+Atividades desenvolvidas:
+
+Gustavo Rodrigues Gualberto: BytecodeInterpreter.cpp, vídeo e resumo das atividades
+HENRIQUE CARVALHO WOLSKI: ClassLoader.cpp
+PAULO HENRIQUE BORGES MARTINS: BytecodeInterpreter.cpp e slides
+RYAN REIS FONTENELE: ClassLoader.cpp
+VICTOR HENRIQUE DA SILVA COSTA: BytecodeInterpreter.cpp
