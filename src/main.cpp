@@ -667,6 +667,14 @@ int main(int argc, char *argv[]) {
     readData(file, majorVersion);
     majorVersion = ((majorVersion >> 8) & 0xFF) | ((majorVersion << 8) & 0xFF00);
     std::cout << "Versão: " << majorVersion << "." << minorVersion << std::endl;
+    // Adição da versão Java
+    std::cout << "Compilado para Java: ";
+    if (majorVersion < 49) {
+        std::cout << "1." << (majorVersion - 44);
+    } else {
+        std::cout << (majorVersion - 44);
+    }
+    std::cout << std::endl;
 
     // Ler e exibir o pool de constantes
     std::vector<ConstantPoolEntry> constantPool;
