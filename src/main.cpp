@@ -176,8 +176,8 @@ void readConstantPool(std::ifstream &file, std::vector<ConstantPoolEntry> &const
 
             case 16:
                 // não há detalhes de implementação
-            break;
-                
+                break;
+
             case 18:
                 // não há detalhes de implementação
                 break;
@@ -274,17 +274,17 @@ void displayConstantPool(const std::vector<ConstantPoolEntry> &constantPool) {
                 break;
 
             case 15:
-                std::cout << " CONSTANT_MethodHandle:" << std::endl; 
+                std::cout << " CONSTANT_MethodHandle:" << std::endl;
                 break;
 
             case 16:
                 std::cout << " CONSTANT_MethodType" << std::endl;
                 break;
-                
+
             case 18:
                 std::cout << " CONSTANT_InvokeDynamic:" << std::endl;
                 break;
-            
+
             default:
                 std::cout << "Unknown" << std::endl;
                 std::cout << std::endl;
@@ -911,8 +911,9 @@ void displayMethods(const std::vector<method_info> &methods,
 
                             break;
                         case 132:
-                            std::cout << i << " " << "iinc"  << std::endl; // Mostra posição atual, mnemônico
-
+                            std::cout << i << " " << "iinc " << (int)(attribute.info[8 + i + 1]) << " by " << (int)static_cast<int>(attribute.info[8 + i + 2])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 2; // Atualiza posição atual para a próxima instrução
                             break;
                         case 133:
                             std::cout << i << " " << "i2l"  << std::endl; // Mostra posição atual, mnemônico
@@ -972,6 +973,10 @@ void displayMethods(const std::vector<method_info> &methods,
                             break;
                         case 140:
                             std::cout << i << " " << "f2l"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 149:
+                            std::cout << i << " " << "fcmpl"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
                         case 150:
@@ -1073,35 +1078,35 @@ void displayMethods(const std::vector<method_info> &methods,
                             i = i + 2; // Atualiza posição atual para a próxima instrução
 
                             break;
-                        case 32:
+                        case 50:
                             std::cout << i << " " << "aaload"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
-                        case 33:
+                        case 51:
                             std::cout << i << " " << "baload"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
-                        case 34:
+                        case 52:
                             std::cout << i << " " << "caload"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
-                        case 35:
+                        case 53:
                             std::cout << i << " " << "saload"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
-                        case 36:
+                        case 46:
                             std::cout << i << " " << "iaload"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
-                        case 37:
+                        case 47:
                             std::cout << i << " " << "laload"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
-                        case 38:
+                        case 48:
                             std::cout << i << " " << "faload"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
-                        case 39:
+                        case 49:
                             std::cout << i << " " << "daload"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
@@ -1112,6 +1117,43 @@ void displayMethods(const std::vector<method_info> &methods,
                                                                 << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.descriptorIndex].info.nameIndex] << ">"
                                                               << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e nome e descritor do field
                             i = i + 2; // Atualiza posição atual para a próxima instrução
+
+                            break;
+
+                        case 184:
+                            std::cout << i << " " << "invokestatic #" << (int)(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]) << " <" <<
+                                                                pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.classIndex].info.nameIndex].info.nameIndex] << "."
+                                                                << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.nameIndex].info.nameIndex]  << " : "
+                                                                << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.descriptorIndex].info.nameIndex] << ">"
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e nome e descritor do field
+                            i = i + 2; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 183:
+                            std::cout << i << " " << "invokespecial #" << (int)(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]) << " <" <<
+                                                                pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.classIndex].info.nameIndex].info.nameIndex] << "."
+                                                                << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.nameIndex].info.nameIndex]  << " : "
+                                                                << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.descriptorIndex].info.nameIndex] << ">"
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e nome e descritor do field
+                            i = i + 2; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 185:
+                            std::cout << i << " " << "invokeinterface #" << (int)(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]) << " <" <<
+                                                                pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.classIndex].info.nameIndex].info.nameIndex] << "."
+                                                                << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.nameIndex].info.nameIndex]  << " : "
+                                                                << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.descriptorIndex].info.nameIndex] << ">"
+                                                              << " count " << (int)(attribute.info[8 + i + 3]) << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e nome e descritor do field
+                            i = i + 4; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 186:
+                            std::cout << i << " " << "invokedynamic #" << (int)(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]) << " <" <<
+                                                                pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.classIndex].info.nameIndex].info.nameIndex] << "."
+                                                                << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.nameIndex].info.nameIndex]  << " : "
+                                                                << pool_strings[constantPool[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.ref.nameAndTypeIndex].info.nameAndType.descriptorIndex].info.nameIndex] << ">"
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e nome e descritor do field
+                            i = i + 4; // Atualiza posição atual para a próxima instrução
 
                             break;
                         case 167:
@@ -1126,6 +1168,26 @@ void displayMethods(const std::vector<method_info> &methods,
                                                               << "(" << (int)static_cast<int32_t>(attribute.info[8 + i + 1]*16777216 + attribute.info[8 + i + 2]*65536 + attribute.info[8 + i + 3]*256 + attribute.info[8 + i + 4]) << ")"
                                                               << std::endl; // Mostra posição atual, mnemônico, posição destino (posição atual + offset) e offset
                             i = i + 4; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 172:
+                            std::cout << i << " " << "ireturn"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 173:
+                            std::cout << i << " " << "lreturn"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 174:
+                            std::cout << i << " " << "freturn"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 175:
+                            std::cout << i << " " << "dreturn"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 176:
+                            std::cout << i << " " << "areturn"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
                         case 177:
@@ -1193,50 +1255,297 @@ void displayMethods(const std::vector<method_info> &methods,
                             int x1, y1, n1, lower1, padding1;
                             y1 = 0;
                             padding1 = (4 - (i % 4)) % 4;
-                            //n1 = (int)static_cast<int32_t>(attribute.info[8 + i + padding1 + 8]*16777216 + attribute.info[8 + i + padding1 + 9]*65536 + attribute.info[8 + i + padding1 + 10]*256 + attribute.info[8 + i + padding1 + 11]) - (attribute.info[8 + i + padding1 + 4]*16777216 + attribute.info[8 + i + padding1 + 5]*65536 + attribute.info[8 + i + padding1 + 6]*256 + attribute.info[8 + i + padding1 + 7]) + 1;
-
                             lower1 = (int)(attribute.info[8 + i + padding1 + 4]*16777216 + attribute.info[8 + i + padding1 + 5]*65536 + attribute.info[8 + i + padding1 + 6]*256 + attribute.info[8 + i + padding1 + 7]);
                             std::cout << lower1 << std::endl;
                             for (x1 = 0; x1 < lower1; x1++) {
                                 std::cout << "                         " << (int)(attribute.info[8 + i + padding1 + 8 + y1]*16777216 + attribute.info[8 + i + padding1 + 9 + y1]*65536 + attribute.info[8 + i + padding1 + 10 + y1]*256 + attribute.info[8 + i + padding1 + 11 + y1]) << ": "
-                                                                        << i + (int)static_cast<int32_t>(attribute.info[8 + i + padding1 + 12 + y1]*16777216 + attribute.info[8 + i + padding1 + 13 + y1]*65536 + attribute.info[8 + i + padding1 + 14 + y1]*256 + attribute.info[8 + i + padding1 + 15 + y1])
-                                                                                      << " (" << (int)static_cast<int32_t>(attribute.info[8 + i + padding1 + 12 + y1]*16777216 + attribute.info[8 + i + padding1 + 13 + y1]*65536 + attribute.info[8 + i + padding1 + 14 + y1]*256 + attribute.info[8 + i + padding1 + 15 + y1]) << ")" << std::endl;
+                                                                         << i + (int)static_cast<int32_t>(attribute.info[8 + i + padding1 + 12 + y1]*16777216 + attribute.info[8 + i + padding1 + 13 + y1]*65536 + attribute.info[8 + i + padding1 + 14 + y1]*256 + attribute.info[8 + i + padding1 + 15 + y1])
+                                                                         << " (" << (int)static_cast<int32_t>(attribute.info[8 + i + padding1 + 12 + y1]*16777216 + attribute.info[8 + i + padding1 + 13 + y1]*65536 + attribute.info[8 + i + padding1 + 14 + y1]*256 + attribute.info[8 + i + padding1 + 15 + y1]) << ")" << std::endl;
                                 y1 = y1 + 8;
                             }
 
                             std::cout << "                         default: " << i + (int)static_cast<int32_t>(attribute.info[8 + i + padding1]*16777216 + attribute.info[8 + i + padding1 + 1]*65536 + attribute.info[8 + i + padding1 + 2]*256 + attribute.info[8 + i + padding1 + 3]) << " "
-                                                              << "(" << (int)static_cast<int32_t>(attribute.info[8 + i + padding1]*16777216 + attribute.info[8 + i + padding1 + 1]*65536 + attribute.info[8 + i + padding1 + 2]*256 + attribute.info[8 + i + padding1 + 3]) << ")"
-                                                              << std::endl; // Mostra posição atual, mnemônico, posição destino (posição atual + offset) e offset
+                                                                              << "(" << (int)static_cast<int32_t>(attribute.info[8 + i + padding1]*16777216 + attribute.info[8 + i + padding1 + 1]*65536 + attribute.info[8 + i + padding1 + 2]*256 + attribute.info[8 + i + padding1 + 3]) << ")"
+                                                                              << std::endl; // Mostra posição atual, mnemônico, posição destino (posição atual + offset) e offset
                             i = i + padding1 - 1 + 8 + lower; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 169:
+                            std::cout << i << " " << "ret "  << (int)attribute.info[8 + i + 1] << std::endl; // Mostra posição atual, mnemônico
+                            i = i + 1;
+
+                            break;
+                        case 168:
+                            std::cout << i << " " << "jsr " << i + (int)static_cast<int16_t>(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]) << " "
+                                                              << "(" << (int)static_cast<int16_t>(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]) << ")"
+                                                              << std::endl; // Mostra posição atual, mnemônico, posição destino (posição atual + offset) e offset
+                            i = i + 2; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 201:
+                            std::cout << i << " " << "jsr_w " << i + (int)static_cast<int32_t>(attribute.info[8 + i + 1]*16777216 + attribute.info[8 + i + 2]*65536 + attribute.info[8 + i + 3]*256 + attribute.info[8 + i + 4]) << " "
+                                                              << "(" << (int)static_cast<int32_t>(attribute.info[8 + i + 1]*16777216 + attribute.info[8 + i + 2]*65536 + attribute.info[8 + i + 3]*256 + attribute.info[8 + i + 4]) << ")"
+                                                              << std::endl; // Mostra posição atual, mnemônico, posição destino (posição atual + offset) e offset
+                            i = i + 4; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 42:
+                            std::cout << i << " " << "aload_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 43:
+                            std::cout << i << " " << "aload_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 44:
+                            std::cout << i << " " << "aload_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 45:
+                            std::cout << i << " " << "aload_3"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
                         case 26:
                             std::cout << i << " " << "iload_0"  << std::endl; // Mostra posição atual, mnemônico
 
                             break;
-/*iconst lconst fconst dconst aconst iload lload fload
-dload aload istore lstore fstore dstore astore iinc baload saload iaload
-laload faload daload caload aaload bastore sastore iastore lastore fastore
-dastore castore aastore iadd ladd fadd dadd isub lsub fsub dsub imul lmul
-fmul dmul idiv ldiv fdiv ddiv irem lrem frem drem ineg lneg fneg dneg ishl
-lshl ishr lshr iushr lushr iand land ior lor ixor lxor i2b i2s i2l i2f i2d
-l2i l2f l2d f2i f2l f2d d2i d2l d2f lcmp fcmpl dcmpl fcmpg dcmpg if_icmpOP
-if_acmpOP ireturn lreturn freturn dreturn areturn*/
+                        case 27:
+                            std::cout << i << " " << "iload_1"  << std::endl; // Mostra posição atual, mnemônico
 
-                        //default:
-                            //std::cout << << std::endl;
-                           // std::cout << std::endl;
+                            break;
+                        case 28:
+                            std::cout << i << " " << "iload_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 29:
+                            std::cout << i << " " << "iload_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 21:
+                            std::cout << i << " " << "iload " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 22:
+                            std::cout << i << " " << "lload " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 30:
+                            std::cout << i << " " << "lload_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 31:
+                            std::cout << i << " " << "lload_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 32:
+                            std::cout << i << " " << "lload_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 33:
+                            std::cout << i << " " << "lload_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 23:
+                            std::cout << i << " " << "fload " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 34:
+                            std::cout << i << " " << "fload_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 35:
+                            std::cout << i << " " << "fload_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 36:
+                            std::cout << i << " " << "fload_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 37:
+                            std::cout << i << " " << "fload_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 24:
+                            std::cout << i << " " << "dload " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 38:
+                            std::cout << i << " " << "dload_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 39:
+                            std::cout << i << " " << "dload_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 40:
+                            std::cout << i << " " << "dload_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 41:
+                            std::cout << i << " " << "dload_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 54:
+                            std::cout << i << " " << "istore " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 59:
+                            std::cout << i << " " << "istore_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 60:
+                            std::cout << i << " " << "istore_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 61:
+                            std::cout << i << " " << "istore_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 62:
+                            std::cout << i << " " << "istore_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 55:
+                            std::cout << i << " " << "lstore " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 63:
+                            std::cout << i << " " << "lstore_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 64:
+                            std::cout << i << " " << "lstore_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 65:
+                            std::cout << i << " " << "lstore_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 66:
+                            std::cout << i << " " << "lstore_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 56:
+                            std::cout << i << " " << "fstore " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 67:
+                            std::cout << i << " " << "fstore_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 68:
+                            std::cout << i << " " << "fstore_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 69:
+                            std::cout << i << " " << "fstore_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 70:
+                            std::cout << i << " " << "fstore_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 57:
+                            std::cout << i << " " << "dstore " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 71:
+                            std::cout << i << " " << "dstore_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 72:
+                            std::cout << i << " " << "dstore_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 73:
+                            std::cout << i << " " << "dstore_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 74:
+                            std::cout << i << " " << "dstore_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 58:
+                            std::cout << i << " " << "astore " << (int)(attribute.info[8 + i + 1])
+                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            i = i + 1; // Atualiza posição atual para a próxima instrução
+
+                            break;
+                        case 75:
+                            std::cout << i << " " << "astore_0"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 76:
+                            std::cout << i << " " << "astore_1"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 77:
+                            std::cout << i << " " << "astore_2"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 78:
+                            std::cout << i << " " << "astore_3"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 84:
+                            std::cout << i << " " << "bastore"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 85:
+                            std::cout << i << " " << "castore"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 82:
+                            std::cout << i << " " << "dastore"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 81:
+                            std::cout << i << " " << "fastore"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 79:
+                            std::cout << i << " " << "iastore"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 80:
+                            std::cout << i << " " << "lastore"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 86:
+                            std::cout << i << " " << "sastore"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+                        case 83:
+                            std::cout << i << " " << "aastore"  << std::endl; // Mostra posição atual, mnemônico
+
+                            break;
+
+                        default:
+                            std::cout << "Não reconhecido" << std::endl;
                           //  break;
                     }
-                    //std::cout << std::dec << (int)attribute.info[8 + i] << " ";
-
                 }
                 std::cout << std::dec << std::endl;
             }
         }
     }
 }
-
 
 void interpretAttributes(const attribute_info &attribute, const std::vector<ConstantPoolEntry> &constantPool) {
     std::string attributeName = pool_strings[attribute.attribute_name_index];
