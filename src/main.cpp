@@ -170,6 +170,18 @@ void readConstantPool(std::ifstream &file, std::vector<ConstantPoolEntry> &const
                 x++;
                 break;
 
+            case 15:
+                // não há detalhes de implementação
+                break;
+
+            case 16:
+                // não há detalhes de implementação
+            break;
+                
+            case 18:
+                // não há detalhes de implementação
+                break;
+
             default:
                 throw std::runtime_error("Tag desconhecida no pool de constantes: " + std::to_string(entry.tag));
         }
@@ -261,6 +273,18 @@ void displayConstantPool(const std::vector<ConstantPoolEntry> &constantPool) {
                 std::cout << std::endl;
                 break;
 
+            case 15:
+                std::cout << " CONSTANT_MethodHandle:" << std::endl; 
+                break;
+
+            case 16:
+                std::cout << " CONSTANT_MethodType" << std::endl;
+                break;
+                
+            case 18:
+                std::cout << " CONSTANT_InvokeDynamic:" << std::endl;
+                break;
+            
             default:
                 std::cout << "Unknown" << std::endl;
                 std::cout << std::endl;
