@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <limits>
+#include <cmath>
 #include <unordered_map>
 #include <cstdint>
 
@@ -120,10 +122,37 @@ void readConstantPool(std::ifstream &file, std::vector<ConstantPoolEntry> &const
                 entry.info.intValue = ((entry.info.intValue >> 24) & 0xFF) | ((entry.info.intValue >> 8) & 0xFF00) | ((entry.info.intValue << 8) & 0xFF0000) | ((entry.info.intValue << 24) & 0xFF000000);
                 break;
 
-            case 4: // CONSTANT_Float
-                readData(file, entry.info.floatValue);
-                entry.info.floatValue = (float)((((uint32_t)entry.info.floatValue >> 24) & 0xFF) | (((uint32_t)entry.info.floatValue >> 8) & 0xFF00) | (((uint32_t)entry.info.floatValue << 8) & 0xFF0000) | (((uint32_t)entry.info.floatValue << 24) & 0xFF000000));
+            case 4: { // CONSTANT_Float
+                uint32_t bytes;
+
+                // Lê os 4 bytes (big-endian)
+                readData(file, bytes);
+                bytes = __builtin_bswap32(bytes); // Converte para big-endian corretamente
+
+                // Tratamento de valores especiais
+                float value;
+                if (bytes == 0x7f800000) {
+                    value = std::numeric_limits<float>::infinity(); // +∞
+                } else if (bytes == 0xff800000) {
+                    value = -std::numeric_limits<float>::infinity(); // -∞
+                } else if ((bytes >= 0x7f800001 && bytes <= 0x7fffffff) ||
+               (bytes >= 0xff800001 && bytes <= 0xffffffff)) {
+                    value = std::numeric_limits<float>::quiet_NaN(); // NaN
+                } else {
+                    // Decodificação normal IEEE 754
+                    int s = ((bytes >> 31) == 0) ? 1 : -1;
+                    int e = (int)((bytes >> 23) & 0xFF);
+                    int m = (e == 0) ?
+                    (bytes & 0x7FFFFF) << 1 :
+                    (bytes & 0x7FFFFF) | 0x800000;
+
+                    value = s * m * pow(2, e - 150);
+                }
+
+                // Armazena no Constant Pool
+                entry.info.floatValue = value;
                 break;
+}
 
             case 5: // CONSTANT_Long
                 readData(file, entry.info.longValue);
@@ -139,18 +168,43 @@ void readConstantPool(std::ifstream &file, std::vector<ConstantPoolEntry> &const
                 ++i; // Long e double ocupam dois índices no pool de constantes
                 break;
 
-            case 6: // CONSTANT_Double
-                readData(file, entry.info.doubleValue);
-                entry.info.doubleValue = (double)((((uint64_t)entry.info.doubleValue >> 56) & 0xFF) |
-                                         (((uint64_t)entry.info.doubleValue >> 40) & 0xFF00) |
-                                         (((uint64_t)entry.info.doubleValue >> 24) & 0xFF0000) |
-                                         (((uint64_t)entry.info.doubleValue >> 8)  & 0xFF000000) |
-                                         (((uint64_t)entry.info.doubleValue << 8)  & 0xFF00000000) |
-                                         (((uint64_t)entry.info.doubleValue << 24) & 0xFF0000000000) |
-                                         (((uint64_t)entry.info.doubleValue << 40) & 0xFF000000000000) |
-                                         (((uint64_t)entry.info.doubleValue << 56) & 0xFF00000000000000));
-                ++i; // Long e double ocupam dois índices no pool de constantes
+            case 6: { // CONSTANT_Double
+                uint32_t high_bytes, low_bytes;
+    
+                // Lê os dois valores de 4 bytes (big-endian)
+                readData(file, high_bytes);
+                readData(file, low_bytes);
+
+                // Converter para um único inteiro de 64 bits (big-endian)
+                uint64_t bits = ((uint64_t) __builtin_bswap32(high_bytes) << 32) | __builtin_bswap32(low_bytes);
+
+                // Tratamento de valores especiais
+                double value;
+                if (bits == 0x7ff0000000000000L) {
+                    value = std::numeric_limits<double>::infinity(); // +∞
+                } else if (bits == 0xfff0000000000000L) {
+                    value = -std::numeric_limits<double>::infinity(); // -∞
+                } else if ((bits >= 0x7ff0000000000001L && bits <= 0x7ffffffffffffL) ||
+                (bits >= 0xfff0000000000001L && bits <= 0xffffffffffffffffL)) {
+                    value = std::numeric_limits<double>::quiet_NaN(); // NaN
+                } else {
+                    // Decodificação normal IEEE 754
+                    int s = ((bits >> 63) == 0) ? 1 : -1;
+                    int e = (int)((bits >> 52) & 0x7FFL);
+                    uint64_t m = (e == 0) ?
+                     (bits & 0xFFFFFFFFFFFFF) << 1 :
+                     (bits & 0xFFFFFFFFFFFFF) | 0x10000000000000L;
+        
+                    value = s * m * pow(2, e - 1075);
+                }
+
+                // Armazena no Constant Pool
+                entry.info.doubleValue = value;
+    
+                ++i; // Pula um índice porque ocupa dois espaços no pool
                 break;
+                }
+
 
             case 12: // CONSTANT_NameAndType
                 readData(file, entry.info.nameAndType.nameIndex);
