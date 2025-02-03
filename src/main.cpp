@@ -612,7 +612,30 @@ void displayMethods(const std::vector<method_info> &methods,
                     continue;
                 }
 
-                // Exibir o bytecode
+                size_t index = 8 + codeLength;
+                uint16_t exceptionTableLength = (attribute.info[index] << 8) | attribute.info[index + 1];
+                index += 2;
+
+                std::cout << "    Exception Table Length: " << exceptionTableLength << std::endl;
+
+                for (size_t i = 0; i < exceptionTableLength; i++) {
+                    if (attribute.info.size() < (index + 8)) {
+                        std::cerr << "Erro: falta de espaço para entrada da tabela de exceções." << std::endl;
+                        return;
+                    }
+
+                    uint16_t start_pc = (attribute.info[index] << 8) | attribute.info[index + 1];
+                    uint16_t end_pc = (attribute.info[index + 2] << 8) | attribute.info[index + 3];
+                    uint16_t handler_pc = (attribute.info[index + 4] << 8) | attribute.info[index + 5];
+                    uint16_t catch_type = (attribute.info[index + 6] << 8) | attribute.info[index + 7];
+                    index += 8;
+
+                    std::cout << "      Exception " << i << " - Start: " << start_pc 
+                      << ", End: " << end_pc << ", Handler: " << handler_pc
+                      << ", Catch Type: " << catch_type << std::endl;
+                }
+
+                // Exibir o bytecode e demais atributos
                 std::cout << "    Bytecode: " << std::endl;
 
                 for (uint32_t i = 0; i < codeLength; ++i) {
