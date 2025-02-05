@@ -2,6 +2,6 @@ Atividades desenvolvidas:
 
 Gustavo Rodrigues Gualberto: BytecodeInterpreter.cpp, vídeo e resumo das atividades
 HENRIQUE CARVALHO WOLSKI: ClassLoader.cpp
-PAULO HENRIQUE BORGES MARTINS: BytecodeInterpreter.cpp e slides
-RYAN REIS FONTENELE: ClassLoader.cpp
+PAULO HENRIQUE BORGES MARTINS: BytecodeInterpreter.cpp e slides, adição de todos mnemônicos;
+RYAN REIS FONTENELE: ClassLoader.cpp, correção da leitura de FLoat e Double;
 VICTOR HENRIQUE DA SILVA COSTA: BytecodeInterpreter.cpp

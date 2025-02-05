@@ -6,10 +6,14 @@
 #include <limits>
 #include <cmath>
 #include <unordered_map>
+#include <cstring>
 #include <cstdint>
-
+#include <getopt.h>
+#include "framestack.hpp"
+#include "object.hpp"
 std::vector<std::string> pool_strings; // Vetor de strings
 
+bool interpreterCode = false;
 // Função auxiliar para ler dados do arquivo
 template<typename T>
 
@@ -51,6 +55,8 @@ struct ConstantPoolEntry {
         } nameAndType;
     } info;
 };
+
+// CRIAR constPool; // constantPool da MethodArea
 
 // struct attribute_info {
 //     uint16_t attribute_name_index;
@@ -395,7 +401,7 @@ void readinterfaces(std::ifstream &file, std::vector<uint16_t> &interfaces) {
     readData(file, interfaces_count);
     interfaces_count = ((interfaces_count >> 8) & 0xFF) | ((interfaces_count << 8) & 0xFF00);
     interfaces.resize(interfaces_count);
-    std::cout << "Interfaces count: " << interfaces_count  << std::endl;
+    if (!interpreterCode) std::cout << "Interfaces count: " << interfaces_count  << std::endl;
 
     for (int i = 0; i < interfaces_count; i++) {
         uint16_t &entry = interfaces[i];
@@ -422,7 +428,7 @@ void readfieldinfo(std::ifstream &file, std::vector<field_info_entry> &field_inf
     readData(file, fields_count);
     fields_count = ((fields_count >> 8) & 0xFF) | ((fields_count << 8) & 0xFF00);
 
-    std::cout << "Fields count count: " << fields_count  << std::endl;
+    if (!interpreterCode) std::cout << "Fields count count: " << fields_count  << std::endl;
 }
 
 // Função para exibir as variáveis de classe ou variáveis de instância
@@ -462,7 +468,7 @@ void readFields(std::ifstream &file, std::vector<field_info_entry> &fields) {
     readData(file, fields_count);
     fields_count = ((fields_count >> 8) & 0xFF) | ((fields_count << 8) & 0xFF00);
     fields.resize(fields_count);
-    std::cout << "Fields count: " << fields_count  << std::endl;
+    if (!interpreterCode) std::cout << "Fields count: " << fields_count  << std::endl;
 
     for (uint16_t i = 0; i < fields_count; ++i) {
         field_info_entry &field = fields[i];
@@ -526,7 +532,7 @@ void readMethods(std::ifstream &file, std::vector<method_info> &methods) {
     readData(file, methods_count);
     methods_count = ((methods_count >> 8) & 0xFF) | ((methods_count << 8) & 0xFF00);
     methods.resize(methods_count);
-    std::cout << "Methods count: " << methods_count  << std::endl;
+    if (!interpreterCode) std::cout << "Methods count: " << methods_count  << std::endl;
     for (uint16_t i = 0; i < methods_count; ++i) {
         method_info &method = methods[i];
         readData(file, method.access_flags);
@@ -1628,13 +1634,13 @@ void interpretAttributes(const attribute_info &attribute, const std::vector<Cons
     std::string attributeName = pool_strings[attribute.attribute_name_index];
 
     if (attributeName == "Code") {
-        std::cout << "  Code attribute found." << std::endl;
+        if (interpreterCode) std::cout << "  Code attribute found." << std::endl;
         // Decodifique o bytecode aqui
     } else if (attributeName == "LineNumberTable") {
-        std::cout << "  LineNumberTable attribute found." << std::endl;
+        if (interpreterCode) std::cout << "  LineNumberTable attribute found." << std::endl;
         // Decodifique os dados aqui
     } else {
-        std::cout << "  Unknown attribute: " << attributeName << std::endl;
+        if (interpreterCode) std::cout << "  Unknown attribute: " << attributeName << std::endl;
     }
 }
 
@@ -1713,19 +1719,37 @@ void handleAccessFlags(std::ifstream &file, uint16_t access_flag) {
 
 // Função principal para ler e exibir um arquivo .class
 int main(int argc, char *argv[]) {
+    std::string filePath;
 
-    if (argc != 2) {
-        std::cerr << "Uso: " << argv[0] << " <arquivo.class>" << std::endl;
+    // Processamento dos argumentos
+    if (argc < 2 || argc > 3) {
+        std::cerr << "Uso: " << argv[0] << " [-i] <arquivo.class>" << std::endl;
         return 1;
     }
 
-    std::ifstream file(argv[1], std::ios::binary);
+    if (argc == 3) {
+        if (strcmp(argv[1], "-i") == 0) {
+            interpreterCode = true;
+            filePath = argv[2];
+        } else {
+            std::cerr << "Erro: Opção desconhecida '" << argv[1] << "'." << std::endl;
+            return 1;
+        }
+    } else {
+        filePath = argv[1];
+    }
+
+    // Abrir o arquivo
+    std::ifstream file(filePath, std::ios::binary);
     if (!file) {
-        std::cerr << "Erro ao abrir o arquivo: " << argv[1] << std::endl;
+        std::cerr << "Erro ao abrir o arquivo: " << filePath << std::endl;
         return 1;
     }
 
-    // Ler e verificar o número mágico
+    std::cout << "Lendo arquivo: " << filePath << std::endl;
+    
+
+     // Ler e verificar o número mágico
     uint32_t magic;
     readData(file, magic);   // Leitura feita em little endian order
 
@@ -1765,9 +1789,11 @@ int main(int argc, char *argv[]) {
     uint16_t Acess_Flag;        // Flags de acesso
     readData(file, Acess_Flag);
     Acess_Flag = ((Acess_Flag >> 8) & 0xFF) | ((Acess_Flag << 8) & 0xFF00);
-    std::cout << "Flags de acesso: " << std::endl;
-    //displayAcessFlag(file, Acess_Flag);
-    handleAccessFlags(file, Acess_Flag);
+    if (!interpreterCode) {
+        std::cout << "Flags de acesso: " << std::endl;
+        //displayAcessFlag(file, Acess_Flag);
+        handleAccessFlags(file, Acess_Flag);
+    }
 
     // Ler e exibir índice que indica o nome da classe ou interface definida por esse arquivo
     uint16_t this_class;        // Índice na pool de constantes
@@ -1787,7 +1813,7 @@ int main(int argc, char *argv[]) {
     // Ler e exibir o pool de constantes
     std::vector<uint16_t> interfaces;
     readinterfaces(file, interfaces);
-    displayinterfaces(interfaces, constantPool);
+    if (!interpreterCode) displayinterfaces(interfaces, constantPool);
 
     // Ler e exibir as variáveis de classe ou variáveis de instância
     std::vector<field_info_entry> field_info;
@@ -1803,17 +1829,28 @@ int main(int argc, char *argv[]) {
     uint16_t attributes_count;
     readData(file, attributes_count);
     attributes_count = ((attributes_count >> 8) & 0xFF) | ((attributes_count << 8) & 0xFF00);
-    std::cout << "Attributes count: " << attributes_count  << std::endl;
-
-     std::vector<attribute_info> attributes(attributes_count);
-     for (uint16_t i = 0; i < attributes_count; ++i) {
-         readAttribute(file, attributes[i]);
-     }
+    if (!interpreterCode) std::cout << "Attributes count: " << attributes_count  << std::endl;
+    std::vector<attribute_info> attributes(attributes_count);
+    for (uint16_t i = 0; i < attributes_count; ++i) {
+        readAttribute(file, attributes[i]);
+    }
      //displayClassAttributes(attributes, constantPool);
 
+    if (!interpreterCode) {
     displayConstantPool(constantPool);
     displayFields(field_info, constantPool);
     displayMethods(methods, constantPool);
     displayClassAttributes(attributes, constantPool);
+    }
+    else {
+        // Instanciar a Área de Métodos(SINGLETON), adiciona (constPool:: vector dev constantPoolEntry) na A.M.,
+        // Adiciona fields, dados, codigos de métodos e código de construtores;
+        // Criar o Thread (único, pode ser implementado por abstração) -> PC; -> Stack JVM; -> Stack Metodos Nativos;
+        // Stack JVM (tamanho variável ou fixo) -> dentro dela: Frame 
+        // Frame: salva resultados parciais; dados; faz a ligação dinâmica, faz o return para os métodos; responsável pelas exceções.
+        // Frame -> dentro: Array 32 bits(variáveis locais, arrayobject), Stack Operandos 32 bits(vector serve ?), PONTEIRO PARA ConstPool da classe do método corrente;
+
+
+    }
     return 0;
 }
