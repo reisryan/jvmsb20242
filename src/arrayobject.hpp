@@ -1,8 +1,8 @@
 #ifndef arrayobject_h
 #define arrayobject_h
 
-#include "tipos.h"
-#include "object.h"
+#include "tipos.hpp"
+#include "object.hpp"
 
 #include <vector>
 

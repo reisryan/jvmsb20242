@@ -1,4 +1,4 @@
-#include "arrayobject.h"
+#include "arrayobject.hpp"
 
 #include <cassert>
 #include <iostream>
