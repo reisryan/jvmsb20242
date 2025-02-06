@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <getopt.h>
 #include "framestack.hpp"
+#include "methodarea.hpp"
 #include "object.hpp"
 std::vector<std::string> pool_strings; // Vetor de strings
 
@@ -57,13 +58,6 @@ struct ConstantPoolEntry {
 };
 
 // CRIAR constPool; // constantPool da MethodArea
-
-// struct attribute_info {
-//     uint16_t attribute_name_index;
-//     uint64_t attribute_length = 0;
-//     //uint8_t info [attribute_length];
-//     std::vector<uint8_t> info; // Use um vetor dinâmico
-// };
 
 struct attribute_info {
     uint16_t attribute_name_index;
@@ -155,7 +149,6 @@ void readConstantPool(std::ifstream &file, std::vector<ConstantPoolEntry> &const
                     value = s * m * pow(2, e - 150);
                 }
 
-                // Armazena no Constant Pool
                 entry.info.floatValue = value;
                 break;
 }
@@ -204,7 +197,6 @@ void readConstantPool(std::ifstream &file, std::vector<ConstantPoolEntry> &const
                     value = s * m * pow(2, e - 1075);
                 }
 
-                // Armazena no Constant Pool
                 entry.info.doubleValue = value;
     
                 ++i; // Pula um índice porque ocupa dois espaços no pool
@@ -1849,8 +1841,7 @@ int main(int argc, char *argv[]) {
         // Stack JVM (tamanho variável ou fixo) -> dentro dela: Frame 
         // Frame: salva resultados parciais; dados; faz a ligação dinâmica, faz o return para os métodos; responsável pelas exceções.
         // Frame -> dentro: Array 32 bits(variáveis locais, arrayobject), Stack Operandos 32 bits(vector serve ?), PONTEIRO PARA ConstPool da classe do método corrente;
+        // MethodArea& methodArea = MethodArea::getInstance();
 
-
-    }
     return 0;
 }
