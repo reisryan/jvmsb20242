@@ -9,11 +9,12 @@
 #include <cstring>
 #include <cstdint>
 #include <getopt.h>
+#include "JVMStack.hpp"
 #include "framestack.hpp"
 #include "methodarea.hpp"
 #include "object.hpp"
 std::vector<std::string> pool_strings; // Vetor de strings
-
+void* constPool;
 bool interpreterCode = false;
 // Função auxiliar para ler dados do arquivo
 template<typename T>
@@ -1842,6 +1843,12 @@ int main(int argc, char *argv[]) {
         // Frame: salva resultados parciais; dados; faz a ligação dinâmica, faz o return para os métodos; responsável pelas exceções.
         // Frame -> dentro: Array 32 bits(variáveis locais, arrayobject), Stack Operandos 32 bits(vector serve ?), PONTEIRO PARA ConstPool da classe do método corrente;
         // MethodArea& methodArea = MethodArea::getInstance();
+        int maxLocal = 5;
+        void* constPool = &constantPool;
+        JVMStack jvmStack;
+        uint32_t returnAddress;
+        Frame* frameJVM = jvmStack.pushFrame(maxLocal, constPool, returnAddress, -1, true);
 
     return 0;
+}
 }
