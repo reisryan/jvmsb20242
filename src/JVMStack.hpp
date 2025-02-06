@@ -13,7 +13,7 @@ private:
     std::stack<Frame*> stack; ///< Pilha de frames
 
 public:
-    Frame* pushFrame(int maxLocals, int thisObject = -1, bool isStatic = false);
+    Frame* pushFrame(int maxLocals, void* constantPool, uint32_t returnAddress, int thisObject = -1, bool isStatic = false);
     Frame* popFrame();
     Frame* currentFrame();
     bool isEmpty();

@@ -1,9 +1,8 @@
 #include <iostream>
 #include "./framestack.hpp"
 
-
-Frame::Frame(int maxLocals, int maxStack)
-    : localVariables(maxLocals, 0), operandStack(maxStack) {}
+Frame::Frame(int maxLocals, int maxStack, void* constantPool)
+    : localVariables(maxLocals, 0), operandStack(maxStack), constantPool(constantPool), returnAddress(0) {}
 
 // ======= MÉTODOS PARA VARIÁVEIS LOCAIS =======
 
@@ -66,4 +65,12 @@ double Frame::popDoubleOperand() {
     return operandStack.popDouble();
 }
 
+// ======= MÉTODOS PARA GERENCIAR O ENDEREÇO DE RETORNO =======
 
+void Frame::setReturnAddress(uint32_t address) {
+    returnAddress = address;
+}
+
+uint32_t Frame::getReturnAddress() {
+    return returnAddress;
+}
