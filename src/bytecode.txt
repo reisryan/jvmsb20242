@@ -1,0 +1,9 @@
+iload 0      ; Carrega a variável contador (inicia em 0)
+loop_start:
+iload 5      ; Carrega o número 5
+isub         ; Verifica se contador == 5
+ifeq 8       ; Se for igual, sai do loop
+iload 1      ; Carrega o número 1
+iadd         ; Incrementa contador
+goto 1       ; Volta para loop_start
+ireturn      ; Retorna o valor final do contador

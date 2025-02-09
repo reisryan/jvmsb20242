@@ -44,6 +44,10 @@ public:
     int64_t popLongOperand();
     void pushDoubleOperand(double value);
     double popDoubleOperand();
+    bool Frame::operandStackEmpty() {
+        return operandStack.isEmpty();
+    }
+    
 
     // Métodos para gerenciar o endereço de retorno
     void setReturnAddress(uint32_t address);
