@@ -13,7 +13,8 @@ struct field_info_entry;
 class MethodArea {
 public:
     static MethodArea& getInstance(); // Singleton
-
+    ~MethodArea() noexcept;
+    
     void loadClass(const std::string& className, const std::vector<ConstantPoolEntry>& pool,
                    const std::vector<method_info>& methods, const std::vector<field_info_entry>& fields);
 
@@ -23,7 +24,7 @@ public:
 
 private:
     MethodArea() {} // Construtor privado para Singleton
-    ~MethodArea() {}
+    
 
     std::unordered_map<std::string, std::vector<ConstantPoolEntry>> classConstantPools;
     std::unordered_map<std::string, std::vector<method_info>> classMethods;

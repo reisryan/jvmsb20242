@@ -11,8 +11,7 @@
 #include <getopt.h>
 #include "JVMStack.hpp"
 #include "framestack.hpp"
-#include "methodarea.hpp"
-#include "object.hpp"
+
 std::vector<std::string> pool_strings; // Vetor de strings
 void* constPool;
 bool interpreterCode = false;
@@ -784,39 +783,32 @@ void displayMethods(const std::vector<method_info> &methods,
                             break;
                         case 1:
                             std::cout << i << " " << "aconst_null"  << std::endl; // Mostra posição atual, mnemônico
-
                             break;
                         case 2:
                             std::cout << i << " " << "iconst_m1"  << std::endl; // Mostra posição atual, mnemônico
-
                             break;
                         case 3:
                             std::cout << i << " " << "iconst_0"  << std::endl; // Mostra posição atual, mnemônico
-
                             break;
                         case 4:
                             std::cout << i << " " << "iconst_1"  << std::endl; // Mostra posição atual, mnemônico
-
                             break;
                         case 5:
                             std::cout << i << " " << "iconst_2"  << std::endl; // Mostra posição atual, mnemônico
-
                             break;
                         case 6:
                             std::cout << i << " " << "iconst_3"  << std::endl; // Mostra posição atual, mnemônico
-
                             break;
                         case 7:
                             std::cout << i << " " << "iconst_4"  << std::endl; // Mostra posição atual, mnemônico
-
                             break;
                         case 8:
                             std::cout << i << " " << "iconst_5"  << std::endl; // Mostra posição atual, mnemônico
-
+                            
                             break;
                         case 9:
                             std::cout << i << " " << "lconst_0"  << std::endl; // Mostra posição atual, mnemônico
-
+                            
                             break;
                         case 10:
                             std::cout << i << " " << "lconst_1"  << std::endl; // Mostra posição atual, mnemônico
@@ -1752,7 +1744,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Número mágico lido: " << std::hex << magic << std::dec << std::endl;
 
     if (magic != 0xCAFEBABE) {
-        std::cerr << "Arquivo .class inválido" << std::endl;
+        std::cerr << "ClassFormatError: Arquivo .class inválido" << std::endl;
         return 1;
     }
 
@@ -1766,8 +1758,11 @@ int main(int argc, char *argv[]) {
     std::cout << "Compilado para Java: ";
     if (majorVersion < 49) {
         std::cout << "1." << (majorVersion - 44);
-    } else {
+    } else if (majorVersion > 49 && majorVersion < 53) {
         std::cout << (majorVersion - 44);
+    } else {
+        std::cerr << "UnsupportedClassVersionError: Versão não suportada pela JVM Java 8." << std::endl;
+        return 1;
     }
     std::cout << std::endl;
 
@@ -1836,6 +1831,11 @@ int main(int argc, char *argv[]) {
     displayClassAttributes(attributes, constantPool);
     }
     else {
+        struct MethodArea {
+            std::vector<ConstantPoolEntry> constantPool;
+            std::vector<method_info> methods;
+            std::vector<field_info_entry> fields;
+        };
         // Instanciar a Área de Métodos(SINGLETON), adiciona (constPool:: vector dev constantPoolEntry) na A.M.,
         // Adiciona fields, dados, codigos de métodos e código de construtores;
         // Criar o Thread (único, pode ser implementado por abstração) -> PC; -> Stack JVM; -> Stack Metodos Nativos;
@@ -1843,7 +1843,7 @@ int main(int argc, char *argv[]) {
         // Frame: salva resultados parciais; dados; faz a ligação dinâmica, faz o return para os métodos; responsável pelas exceções.
         // Frame -> dentro: Array 32 bits(variáveis locais, arrayobject), Stack Operandos 32 bits(vector serve ?), PONTEIRO PARA ConstPool da classe do método corrente;
         // MethodArea& methodArea = MethodArea::getInstance();
-        int maxLocal = 5;
+        int maxLocal = 32;
         void* constPool = &constantPool;
         JVMStack jvmStack;
         uint32_t returnAddress;

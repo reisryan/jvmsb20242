@@ -3,6 +3,11 @@
 Frame* JVMStack::pushFrame(int maxLocals, void* constantPool, uint32_t returnAddress, int thisObject, bool isStatic) {
     Frame* frame = new Frame(maxLocals, maxLocals, constantPool); // Usando maxLocals também para maxStack
 
+    if (maxLocals > 32) {
+        std::cerr << "StackOverflowError: stack limit exceeded" << std::endl;
+        exit(1);
+    }
+
     frame->setReturnAddress(returnAddress);
 
     if (!isStatic && thisObject != -1) {
@@ -12,6 +17,7 @@ Frame* JVMStack::pushFrame(int maxLocals, void* constantPool, uint32_t returnAdd
     stack.push(frame);
     return frame;
 }
+
 
 Frame* JVMStack::popFrame() {
     if (stack.empty()) {
