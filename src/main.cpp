@@ -764,8 +764,14 @@ void displayMethods(const std::vector<method_info> &methods,
 
                             break;
                         case 18:
-                            std::cout << i << " " << "ldc #" << (int)(attribute.info[8 + i + 1]) << " <" << pool_strings[constantPool[constantPool[attribute.info[8 + i + 1]].info.nameIndex].info.nameIndex] << ">"
-                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            std::cout << i << " " << "ldc #" << (int)(attribute.info[8 + i + 1]) << " <";
+                            if (constantPool[(attribute.info[8 + i + 1])].tag == 3) {
+                                std::cout << constantPool[(attribute.info[8 + i + 1])].info.intValue << ">" << std::endl;
+                            } else if (constantPool[(attribute.info[8 + i + 1])].tag == 4) {
+                                std::cout << constantPool[(attribute.info[8 + i + 1])].info.floatValue << ">" << std::endl;
+                            } else {
+                                std::cout << pool_strings[constantPool[constantPool[attribute.info[8 + i + 1]].info.nameIndex].info.nameIndex] << ">" << std::endl;
+                            }
                             i = i + 1; // Atualiza posição atual para a próxima instrução
 
                             break;
@@ -776,8 +782,12 @@ void displayMethods(const std::vector<method_info> &methods,
 
                             break;
                         case 20:
-                            std::cout << i << " " << "ldc2_w #" << (int)(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]) << " <" << pool_strings[constantPool[constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.nameIndex].info.nameIndex] << ">"
-                                                              << std::endl; // Mostra posição atual, mnemônico, índice na pool de constantes e string
+                            std::cout << i << " " << "ldc2_w #" << (int)(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]) << " <";
+                            if (constantPool[(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2])].tag == 5) {
+                                std::cout << constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.longValue << ">" << std::endl;
+                            } else if (constantPool[(attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2])].tag == 6) {
+                                std::cout << (int)(constantPool[attribute.info[8 + i + 1]*256 + attribute.info[8 + i + 2]].info.doubleValue) << ">" << std::endl;
+                            }
                             i = i + 2; // Atualiza posição atual para a próxima instrução
 
                             break;
